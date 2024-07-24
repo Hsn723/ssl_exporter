@@ -5,9 +5,10 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -344,7 +345,7 @@ func collectFileMetrics(logger log.Logger, files []string, registry *prometheus.
 	registry.MustRegister(fileNotAfter, fileNotBefore)
 
 	for _, f := range files {
-		data, err := ioutil.ReadFile(f)
+		data, err := os.ReadFile(f)
 		if err != nil {
 			level.Debug(logger).Log("msg", fmt.Sprintf("Error reading file %s: %s", f, err))
 			continue
@@ -455,7 +456,7 @@ func collectKubeconfigMetrics(logger log.Logger, kubeconfig KubeConfig, registry
 				return err
 			}
 		} else if c.Cluster.CertificateAuthority != "" {
-			data, err = ioutil.ReadFile(c.Cluster.CertificateAuthority)
+			data, err = os.ReadFile(c.Cluster.CertificateAuthority)
 			if err != nil {
 				level.Debug(logger).Log("msg", fmt.Sprintf("Error reading file %s: %s", c.Cluster.CertificateAuthority, err))
 				return err
@@ -491,7 +492,7 @@ func collectKubeconfigMetrics(logger log.Logger, kubeconfig KubeConfig, registry
 				return err
 			}
 		} else if u.User.ClientCertificate != "" {
-			data, err = ioutil.ReadFile(u.User.ClientCertificate)
+			data, err = os.ReadFile(u.User.ClientCertificate)
 			if err != nil {
 				level.Debug(logger).Log("msg", fmt.Sprintf("Error reading file %s: %s", u.User.ClientCertificate, err))
 				return err
@@ -610,7 +611,7 @@ func fetchCRL(issuers []*x509.Certificate ) (*x509.RevocationList, error) {
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
